@@ -1,0 +1,10 @@
+---
+- name: deploy ODA root
+  hosts: root
+  roles:
+    - oda_root
+
+- name: deploy ODA child
+  hosts: child
+  roles:
+    - oda_child

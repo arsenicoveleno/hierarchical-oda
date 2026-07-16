@@ -1,0 +1,11 @@
+---
+- name: check if mm2 container is currently running
+  command: docker ps -q -f name=mirrormaker_push
+  register: mm2_status
+  changed_when: false
+  listen: restart mm2 container
+
+- name: restart mm2 container
+  command: docker restart mirrormaker_push
+  when: mm2_status.stdout != ""
+  listen: restart mm2 container

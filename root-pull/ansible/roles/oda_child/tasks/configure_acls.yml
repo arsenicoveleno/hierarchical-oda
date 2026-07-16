@@ -1,0 +1,57 @@
+---
+- name: wait for kafka to be ready
+  community.docker.docker_container_exec:
+    container: kafka_pull
+    command: "/kafka/bin/kafka-topics.sh --bootstrap-server localhost:{{ kafka_internal_port }} --list"
+  register: kafka_check
+  until: kafka_check.rc == 0
+  retries: 10
+  delay: 5
+
+# extracting child index to compose principal cn
+- name: set root client CN fact
+  set_fact:
+    root_client_cn: "oda_root_{{ inventory_hostname.split('_') | last }}"
+
+# 1. allow root to consume business topics
+# note: --alllow-principal need to match certificate
+- name: acl business topics
+  community.docker.docker_container_exec:
+    container: kafka_pull
+    command: >
+      /kafka/bin/kafka-acls.sh --bootstrap-server localhost:{{ kafka_internal_port }}
+      --add 
+      --allow-principal User:CN={{ root_client_cn }}
+      --consumer
+      --topic "testingtopic"
+      --group "{{ root_client_cn }}-mm2" 
+      --resource-pattern-type PREFIXED
+  register: acl_business
+  changed_when: "'Adding ACLs' in acl_business.stdout"
+
+# 2. allow root to describe topics configs
+- name: acl root describe topic configs
+  community.docker.docker_container_exec:
+    container: kafka_pull
+    command: >
+      /kafka/bin/kafka-acls.sh --bootstrap-server localhost:{{ kafka_internal_port }}
+      --add 
+      --allow-principal User:CN={{ root_client_cn }}
+      --operation DescribeConfigs 
+      --topic "testingtopic" 
+      --resource-pattern-type PREFIXED
+  register: acl_describe_configs
+  changed_when: "'Adding ACLs' in acl_describe_configs.stdout"
+
+# 3. allow root to initialize replicas
+- name: acl root describe
+  community.docker.docker_container_exec:
+    container: kafka_pull
+    command: >
+      /kafka/bin/kafka-acls.sh --bootstrap-server localhost:{{ kafka_internal_port }}
+      --add 
+      --allow-principal User:CN={{ root_client_cn }}
+      --operation Describe 
+      --cluster
+  register: acl_cluster
+  changed_when: "'Adding ACLs' in acl_cluster.stdout"

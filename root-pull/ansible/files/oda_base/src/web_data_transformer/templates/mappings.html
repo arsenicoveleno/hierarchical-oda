@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ODA_1.1-Visualizza Mapping</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-code-branch me-2"></i>ODA Mapping</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/generateFunction">Crea Mapping</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mappings">Visualizza Mapping</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/query">Invia query</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- div per navigare tra le pagine-->
+    <div class="containerTitle text-center">
+        <!-- Mensaggi di errore -->
+        <div id="errorMessage" class="alert alert-danger d-flex justify-content-between align-items-center" style="display: none !important;">
+            <strong>Errore!</strong> <span id="errorText"></span>
+            <button type="button" class="btn-close" aria-label="Close" onclick="closeMessage('errorMessage')">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <!-- Mensaggi di successo -->
+        <div id="successMessage" class="alert alert-success d-flex justify-content-between align-items-center" style="display: none !important;">
+            <strong>Successo!</strong> <span id="successText"></span>
+            <button type="button" class="btn-close" aria-label="Close" onclick="closeMessage('successMessage')">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
+    <!-- container principale-->
+    <div class="container mt-5">
+        <!-- Modal per collegare un mapping a un DG e topic -->
+        <div class="modal fade" id="linkMappingModal" tabindex="-1" aria-labelledby="linkMappingModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+                <div class="modal-content card">
+                    <div class="modal-header card-header">
+                        <h5 class="modal-title" id="linkMappingModalLabel">Collega Mapping</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Contenitore per gli errori -->
+                        <div id="errorContainerLink" class="alert alert-danger" style="display: none;"></div>
+                        <!-- Contenitore per il successo -->
+                        <div id="successContainerLink" class="alert alert-success" style="display: none;"></div>
+                        <div class="mb-3">
+                            <label for="generatorId" class="form-label">Generator ID:</label>
+                            <input type="text" class="form-control" id="generatorId" name="generatorId" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">Topic:</label>
+                            <input type="text" class="form-control" id="topic" name="topic" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                        <button type="button" class="btn btn-success" id="linkMappingButton">Collega</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- tabella per mostrare i mapping-->
+         <div class="containerTable">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Nome Mapping</th>
+                        <th>Formato schema_input</th>
+                        <th>Nome dello schema destinazione</th>
+                        <th>Funzione di Mapping</th>
+                        <th>Collegamenti esistenti</th>
+                        <th>Dettagli schema_input e mapping</th>
+                        <th>Collega il mapping</th>
+                    </tr>
+                </thead>
+                <tbody id="mappingsTableBody">
+                    <!-- dati inseriti dinamicamente con js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal per visualizzare i dettagli di un mapping -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content card">
+                <div class="modal-header card-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Dettagli Mapping</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalBodyContent">
+                    <!-- dati inseriti dinamicamente con js -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scriptMapping.js') }}"></script>
+</body>
+</html>

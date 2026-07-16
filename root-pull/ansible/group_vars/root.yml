@@ -1,0 +1,49 @@
+---
+# role
+oda_mode: root
+
+## mm2 configuration
+
+# mm2 enabling
+mm2_enabled: true
+
+# child kafka port
+# root_kafka_address: "{{ hostvars[groups['root'][0]]['ansible_host'] }}"
+child_kafka_port: "{{ kafka_port }}"
+
+# configs
+task_max: 1
+
+heartbeats_enabled: false
+checkpoints_enabled: false
+emit_checkpoints_enabled: false
+emit_heartbeats_enabled: false
+sync_topic_configs_enabled: false
+sync_topic_acls_enabled: false
+sync_group_offsets_enabled: false
+
+# mm2 internal topics, dynamic naming to each child
+# offset_storage_topic: "mm2-offsets-{{ inventory_hostname }}"
+# config_storage_topic: "mm2-configs-{{ inventory_hostname }}"
+# status_storage_topic: "mm2-status-{{ inventory_hostname }}"
+
+offset_storage_replication_factor: 1
+config_storage_replication_factor: 1
+status_storage_replication_factor: 1
+offset_syncs_topic_location: "target"
+offset_syncs_topic_replication_factor: 1
+
+offset_storage_partitions: 1
+config_storage_partitions: 1
+status_storage_partitions: 1
+
+# topic replica
+replication_factor: 1
+
+# topics to pull
+child_root_topics: "testingtopic.*"
+
+# sync frequency
+refresh_topics_enabled: true
+refresh_topics_interval_seconds: 60
+refresh_groups_interval_seconds: 60

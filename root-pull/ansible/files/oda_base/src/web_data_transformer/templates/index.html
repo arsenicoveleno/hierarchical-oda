@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ODA_1.1-Gestione Mapping</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #272c36;
+            --accent-color: #dc3545;
+            --light-bg: #f4f7fc;
+            --dark-bg: #272c36;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7fc;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+
+        .nav-link {
+            color: #4e73df !important;
+        }
+        
+        .hero-section {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hero-title {
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0a58ca;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        
+        .stats-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stats-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stats-label {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .quick-actions {
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 1.8rem;
+            }
+            
+            .hero-section {
+                padding: 2rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-code-branch me-2"></i>ODA Mapping</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/generateFunction">Crea Mapping</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mappings">Visualizza Mapping</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/query">Invia query</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Hero section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="hero-title">Interfaccia web per la gestione delle funzioni di mapping</h1>
+            <p class="hero-subtitle">Questa applicazione ti permette di creare funzioni di mapping dinamicamente a seconda dello schema di destinazione selezionato, salvare tali funzioni all'interno di ODA, gestire e visualizzare le funzioni e i loro dettagli...</p>
+        </div>
+    </section>
+    <!-- Messaggi di sistema -->
+    <div class="container mb-4">
+        <div id="errorMessage" class="alert alert-danger d-flex justify-content-between align-items-center" style="display: none !important;">
+            <div>
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Errore!</strong> <span id="errorText"></span>
+            </div>
+            <button type="button" class="btn-close" aria-label="Close" onclick="closeMessage('errorMessage')"></button>
+        </div>
+        <div id="successMessage" class="alert alert-success d-flex justify-content-between align-items-center" style="display: none !important;">
+            <div>
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Successo!</strong> <span id="successText"></span>
+            </div>
+            <button type="button" class="btn-close" aria-label="Close" onclick="closeMessage('successMessage')"></button>
+        </div>
+    </div>
+    <!-- Quick Actions -->
+    <div class="container quick-actions">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="d-grid">
+                    <button class="btn btn-primary btn-lg" onclick="redirect_function()">
+                        <i class="fas fa-plus me-2"></i> Genera Nuova Funzione
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="d-grid">
+                    <button class="btn btn-primary btn-lg" onclick="redirect_mappings()">
+                        <i class="fas fa-list me-2"></i> Gestisci Funzioni Esistenti
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="d-grid">
+                    <button class="btn btn-primary btn-lg" onclick="redirect_query()">
+                        <i class="fas fa-code-branch me-2"></i> Invia una query
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Statistiche -->
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number"><span id="totalMappings"></span></div>
+                    <div class="stats-label">Funzioni di mapping esistenti</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number"><span id="numberOfLink"></span></div>
+                    <div class="stats-label">Collegamenti di DG alle funzioni</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number"><span id="availableSchemas">2</span></div>
+                    <div class="stats-label">Schemi destinazione di default disponibili</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/scriptIndex.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

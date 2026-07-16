@@ -1,0 +1,60 @@
+## mirrormaker 2 configuration
+
+# cluster names
+clusters={{ item }},root
+
+# source aka our child, pulling data
+{{ item }}.bootstrap.servers={{ hostvars[item]['ansible_host'] }}:{{ child_kafka_port }}
+
+# target aka our root
+root.bootstrap.servers=kafka_pull:{{ kafka_internal_port }}
+
+## child SSL config
+{{ item }}.security.protocol=SSL
+{{ item }}.ssl.truststore.location={{ kafka_secrets_dir }}/kafka.client.truststore.jks
+{{ item }}.ssl.truststore.password={{ kafka_ssl_password }}
+{{ item }}.ssl.keystore.location={{ kafka_secrets_dir }}/kafka.client.keystore.jks
+{{ item }}.ssl.keystore.password={{ kafka_ssl_password }}
+{{ item }}.ssl.key.password={{ kafka_ssl_password }}
+
+## replication settings
+
+# replication flow
+{{ item }}->root.enabled={{ mm2_enabled }}
+task.max={{ task_max }}
+
+# optional, set to false
+heartbeats.enabled={{ heartbeats_enabled }}
+checkpoints.enabled={{ checkpoints_enabled }}
+emit.checkpoints.enabled={{ emit_checkpoints_enabled }}
+emit.heartbeats.enabled={{ emit_heartbeats_enabled }}
+sync.topic.configs.enabled={{ sync_topic_configs_enabled }}
+sync.topic.acls.enabled={{ sync_topic_acls_enabled }}
+sync.group.offsets.enabled={{ sync_group_offsets_enabled }}
+
+# mm2 internal topics
+offset.storage.topic=mm2-offsets-{{ item }}
+config.storage.topic=mm2-configs-{{ item }}
+status.storage.topic=mm2-status-{{ item }}
+
+offset.storage.replication.factor={{ offset_storage_replication_factor }}
+config.storage.replication.factor={{ config_storage_replication_factor }}
+status.storage.replication.factor={{ status_storage_replication_factor }}
+offset-syncs.topic.location={{ offset_syncs_topic_location }}
+offset-syncs.topic.replication.factor={{ offset_syncs_topic_replication_factor }}
+
+offset.storage.partitions={{ offset_storage_partitions }}
+config.storage.partitions={{ config_storage_partitions }}
+status.storage.partitions={{ status_storage_partitions }}
+
+# topic replica
+replication.factor={{ replication_factor }}
+
+# topics to mirror
+{{ item }}->root.topics={{ child_root_topics }}
+
+# sync frequency
+refresh.topics.enabled={{ refresh_topics_enabled }}
+refresh.topics.interval.seconds={{ refresh_topics_interval_seconds }}
+refresh.groups.interval.seconds={{ refresh_groups_interval_seconds }}
+refresh.bootstrap.servers=kafka_pull:{{ kafka_internal_port }}

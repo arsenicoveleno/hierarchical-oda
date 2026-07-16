@@ -1,0 +1,10 @@
+{
+    "timestamp": "orario della generazione del dato aa:mm:gg", 
+    "generatorId": "nome del sensore", 
+    "topic": "cosa misura il sensore", 
+    "buildingId": "identificatore edificio", 
+    "buildingName": "nome edificio", 
+    "area": "area edificio",
+    "electricConsumption": "consumi edificio"
+  }
+

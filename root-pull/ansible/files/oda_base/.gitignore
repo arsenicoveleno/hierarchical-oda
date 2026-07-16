@@ -1,0 +1,11 @@
+*.log
+*.gzip
+*Zone.Identifier
+.vscode
+# Ignora i file __pycache__
+__pycache__/
+*.pyc
+src/data_transformer/provaFunzione.py
+**/venv/
+**/env/
+**/test/

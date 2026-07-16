@@ -1,0 +1,8 @@
+---
+- name: stop ODA distributed stack
+  hosts: all
+  tasks:
+    - name: Stop containers via docker compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ oda_deploy_path }}"
+        state: stopped

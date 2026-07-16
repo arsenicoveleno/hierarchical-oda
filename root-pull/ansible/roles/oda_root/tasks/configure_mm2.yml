@@ -1,0 +1,16 @@
+---
+- name: secure mm2 dir config
+  file:
+    path: "{{ oda_deploy_path }}/config/mirrormaker"
+    state: directory
+    mode: '0755'
+
+- name: drift control to enforce mm2 config integrity
+  template:
+    src: ../../templates/child.properties.j2
+    dest: "{{ oda_deploy_path }}/config/mirrormaker/{{ item }}.properties"
+    mode: '0644'
+    force: yes
+  loop: "{{ groups['child'] }}"
+  register: mm2_template_result
+  notify: restart mm2 containers

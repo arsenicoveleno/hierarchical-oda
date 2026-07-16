@@ -1,0 +1,40 @@
+---
+# ansible user
+ansible_user: "ansible" # replace with your ansible user
+
+# oda src path, replace with your desired path
+oda_deploy_path: "/home/{{ ansible_user }}/oda_pull"
+
+# deploy naming
+compose_filename: "compose.yml"
+env_filename: ".env"
+
+# variable to restore the topic list from file in the topic manager
+restore_topics_from_file: true
+
+# common ports to both root and child
+db_port: 8087
+kafka_internal_port: 9093
+kafka_port: 9095
+kafka_port_static: 9096
+db_manager_port: 50001
+query_aggregator_port: 50002
+api_gateway_port: 50006
+web_data_transformer_port: 50007
+data_transformer_port: 50008
+topic_manager_port: 50011
+
+kafka_address: "{{ ansible_host }}"
+kafka_address_static: "{{ ansible_host }}"
+
+# keystore and truststore password (encrypted)
+kafka_ssl_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          37326438383232313838613634666237373637386466343663666132623539336532373138393163
+          3431353337623363356366616337326339316531313662660a613264346464643062663837323231
+          64346139653931353066343939623263643332376566346339636364383161343636656264616230
+          3461663766616438310a386564343239626430646364323766613863656638326164623538343163
+          6365
+
+# kafka secrets path
+kafka_secrets_dir: "/etc/kafka/secrets"

@@ -1,0 +1,23 @@
+---
+- name: start ODA distributed stack (both root and child)
+  hosts: all
+  tasks:
+    - name: start stack via docker compose
+      command: docker compose -f {{ compose_filename }} up -d --build
+      args:
+        chdir: "{{ oda_deploy_path }}"
+      register: compose_output
+      changed_when: "'Started' in compose_output.stdout or 'Created' in compose_output.stdout"
+
+- name: apply runtime configs
+  hosts: child
+  tasks:
+    - name: apply kafka ACLs dynamically
+      include_role:
+        name: oda_child
+        tasks_from: configure_acls.yml
+
+    - name: apply kafka Quotas dynamically
+      include_role:
+        name: oda_child
+        tasks_from: configure_quotas.yml

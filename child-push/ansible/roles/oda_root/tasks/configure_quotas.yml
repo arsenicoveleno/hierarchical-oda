@@ -1,0 +1,17 @@
+---
+# configure bandwith limits for child
+# target: 1 MB/s (1048576 bytes)
+# dynamic principals based on ansible inventory
+
+- name: quotas
+  community.docker.docker_container_exec:
+    container: kafka_push
+    command: >
+      /kafka/bin/kafka-configs.sh --bootstrap-server localhost:{{ kafka_internal_port }}
+      --alter --add-config 'producer_byte_rate=1048576'
+      --entity-type users
+      --entity-name 'CN={{ item }}'
+  loop: "{{ groups['child'] }}"
+  register: quota_results
+  # idempotency changes
+  changed_when: "quota_results.stdout is defined and 'Completed' in quota_results.stdout"

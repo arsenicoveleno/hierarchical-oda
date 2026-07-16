@@ -1,0 +1,18 @@
+---
+- name: check if mm2 containers are currently running
+  command: docker ps -q -f name=mirrormaker_{{ item }}_pull
+  register: mm2_status
+  changed_when: false
+  loop: "{{ groups['child'] }}"
+  listen: restart mm2 containers
+
+- name: execute the restart on running mm2 containers
+  command: docker restart mirrormaker_{{ my_container.item }}_pull
+  loop: "{{ mm2_status.results }}"
+  loop_control:
+    loop_var: my_container       
+    index_var: idx               
+  when: 
+    - my_container.stdout != ""
+    - mm2_template_result.results[idx].changed 
+  listen: restart mm2 containers

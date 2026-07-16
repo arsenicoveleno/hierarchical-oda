@@ -1,0 +1,39 @@
+---
+- name: create oda base deployment directory
+  file:
+    path: "{{ oda_deploy_path }}"
+    state: directory
+    mode: '0700'
+
+- name: create secrets subdirectory, open to container
+  file:
+    path: "{{ oda_deploy_path }}/secrets"
+    state: directory
+    mode: '0755'
+
+- name: deploy kafka keystores and truststores
+  copy:
+    src: "../../files/secrets/{{ inventory_hostname }}/{{ item }}"
+    dest: "{{ oda_deploy_path }}/secrets/{{ item }}"
+    mode: '0644'
+  with_items:
+    - kafka.server.keystore.jks
+    - kafka.server.truststore.jks
+
+- name: copy oda base files
+  copy:
+    src: "../../files/oda_base/"
+    dest: "{{ oda_deploy_path }}/"
+    directory_mode: '0755'
+
+- name: generate oda env file
+  template:
+    src: ../../templates/env.j2
+    dest: "{{ oda_deploy_path }}/{{ env_filename }}"
+    mode: '0644'
+
+- name: generate docker compose file
+  template:
+    src: ../../templates/compose_root.yml.j2
+    dest: "{{ oda_deploy_path }}/{{ compose_filename }}"
+    mode: '0644'

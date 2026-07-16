@@ -1,0 +1,6 @@
+Flask
+requests
+SQLAlchemy
+pymysql
+gevent
+gunicorn

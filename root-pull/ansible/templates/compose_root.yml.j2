@@ -1,0 +1,203 @@
+name: root_pull
+
+services:
+  zookeeper:
+    container_name: zookeeper_pull
+    image: alebocci/odakafka
+    command: [
+        "sh", "-c",
+        "bin/zookeeper-server-start.sh config/zookeeper.properties"
+      ]
+    restart: always
+    environment:
+      ODA_MODE: {{ oda_mode }}
+      LOG_DIR: /tmp/logs
+
+  kafka:
+    container_name: kafka_pull
+    image: alebocci/odakafka
+    volumes:
+      - {{ oda_deploy_path }}/secrets:{{ kafka_secrets_dir }}:ro
+    command: [
+      "sh", "-c",
+      "bin/kafka-server-start.sh config/server.properties
+      --override default.replication.factor=1 
+      --override auto.create.topics.enable=false 
+      --override listeners=$${KAFKA_LISTENERS} 
+      --override advertised.listeners=$${KAFKA_ADVERTISED_LISTENERS} 
+      --override zookeeper.connect=$${KAFKA_ZOOKEEPER_CONNECT} 
+      --override inter.broker.listener.name=$${KAFKA_INTER_BROKER_LISTENER_NAME} 
+      --override listener.security.protocol.map=$${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP}"
+    ]
+    depends_on:
+    - zookeeper
+    ports:
+    - {{ kafka_port }}:{{ kafka_port }}
+    - {{ kafka_port_static }}:{{ kafka_port_static }}
+    restart: always
+    environment:
+      ODA_MODE: {{ oda_mode }}
+      LOG_DIR: "/tmp/logs"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper_pull:2181
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:{{ kafka_internal_port }},OUTSIDE1://0.0.0.0:{{ kafka_port }},OUTSIDE2://0.0.0.0:{{ kafka_port_static }}
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:{{ kafka_internal_port }},OUTSIDE1://{{ kafka_address }}:{{ kafka_port }},OUTSIDE2://{{ kafka_address_static }}:{{ kafka_port_static }}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE1:PLAINTEXT,OUTSIDE2:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb_pull
+    env_file:
+      - influx.env
+    volumes:
+      - influxdbdata_pull:/var/lib/influxdb2:rw
+      - influxdbconfig_pull:/etc/influxdb2:rw
+    restart: always
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysqldb_pull
+    restart: always
+    env_file:
+      - mysql.env
+    volumes:
+      - mysqldata_pull:/var/lib/mysql
+
+  dbmanager:
+    build: 
+      context: src/db_manager
+      args:
+        DB_MANAGER_PORT: {{ db_manager_port }}
+    container_name: dbmanager_pull
+    restart: always
+    env_file:
+      - influx.env
+    environment: 
+      ODA_MODE: {{ oda_mode }}
+      DB_PORT: {{ db_port }}
+    depends_on:
+      - influxdb
+
+  topicmanager:
+    build:
+      context: src/topic_manager
+      args:
+        TOPIC_MANAGER_PORT: {{ topic_manager_port }}
+    container_name: topicmanager_pull
+    restart: always
+    environment: 
+      ODA_MODE: {{ oda_mode }}
+      KAFKA_INTERNAL_PORT: {{ kafka_internal_port }}
+      RESTORE_TOPICS: {{ restore_topics_from_file }}
+    volumes:
+      - topiclist_pull:/app/topiclist:rw
+    depends_on:
+      - kafka
+      - dbmanager
+
+  datapump:
+    build: src/data_pump
+    container_name: datapump_pull
+    restart: always
+    environment: 
+      ODA_MODE: {{ oda_mode }}
+      KAFKA_INTERNAL_PORT: {{ kafka_internal_port }}
+      DB_MANAGER_PORT: {{ db_manager_port }}
+    depends_on:
+      - kafka
+      - dbmanager
+
+  queryaggregator:
+    build: 
+      context: src/query_aggregator
+      args:
+        QUERY_AGGREGATOR_PORT: {{ query_aggregator_port }}
+    container_name: queryaggregator_pull
+    restart: always
+    environment:
+      ODA_MODE: {{ oda_mode }}
+      QUERY_AGGREGATOR_PORT: {{ query_aggregator_port }}
+      DB_MANAGER_PORT: {{ db_manager_port }}
+    depends_on:
+      - dbmanager    
+
+  apigateway:
+    build: 
+      context: src/api_gateway
+      args:
+        API_GATEWAY_PORT: {{ api_gateway_port }}
+    container_name: apigateway_pull
+    ports:
+      - {{ api_gateway_port }}:{{ api_gateway_port }}
+    restart: always
+    environment:
+      ODA_MODE: {{ oda_mode }}
+      API_GATEWAY_PORT: {{ api_gateway_port }}
+      KAFKA_PORT: {{ kafka_port }}
+      KAFKA_PORT_STATIC: {{ kafka_port_static }}
+      KAFKA_ADDRESS: {{ kafka_address }}
+      KAFKA_ADDRESS_STATIC: {{ kafka_address_static }}
+      DB_MANAGER_PORT: {{ db_manager_port }}
+      TOPIC_MANAGER_PORT: {{ topic_manager_port }}
+      QUERY_AGGREGATOR_PORT: {{ query_aggregator_port }}
+      WEB_DATA_TRANSFORMER_PORT: {{ web_data_transformer_port }}
+      DATA_TRANSFORMER_PORT: {{ data_transformer_port }}
+    depends_on:
+      - datapump
+      - topicmanager
+      - data_transformer
+      - web_data_transformer
+      - queryaggregator
+      
+  web_data_transformer:
+    build:
+      context: src/web_data_transformer
+      args:
+        WEB_DATA_TRANSFORMER_PORT: {{ web_data_transformer_port }}
+    container_name: webdatatransformer_pull
+    restart: always
+    ports:
+      - {{ web_data_transformer_port }}:{{ web_data_transformer_port }}
+    environment:
+      ODA_MODE: {{ oda_mode }}
+      WEB_DATA_TRANSFORMER_PORT: {{ web_data_transformer_port }}
+      DATA_TRANSFORMER_PORT: {{ data_transformer_port }}
+      DB_MANAGER_PORT: {{ db_manager_port }}
+    depends_on:
+      - data_transformer
+      - dbmanager
+
+  data_transformer:
+    build: 
+      context: src/data_transformer
+      args:
+        DATA_TRANSFORMER_PORT: {{ data_transformer_port }}
+    container_name: datatransformer_pull
+    restart: always
+    environment:
+      ODA_MODE: {{ oda_mode }}
+      DATA_TRANSFORMER_PORT: {{ data_transformer_port }}
+      DB_MANAGER_PORT: {{ db_manager_port }}
+    depends_on:
+      - mysql
+      - dbmanager
+
+{% for child in groups['child'] %}
+  mirrormaker_{{ child }}:
+    image: alebocci/odakafka
+    container_name: mirrormaker_{{ child }}_pull
+    depends_on:
+      - kafka
+    command: >
+      /kafka/bin/connect-mirror-maker.sh /kafka/config/mirrormaker/{{ child }}.properties
+    volumes:
+      - {{ oda_deploy_path }}/config/mirrormaker:/kafka/config/mirrormaker:ro
+      - {{ oda_deploy_path }}/secrets/{{ child }}:{{ kafka_secrets_dir }}:ro
+    restart: always
+{% endfor %}
+
+volumes:
+  influxdbdata_pull:
+  influxdbconfig_pull:
+  mysqldata_pull:
+  topiclist_pull:

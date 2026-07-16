@@ -1,0 +1,69 @@
+---
+- name: wait for kafka to be ready
+  community.docker.docker_container_exec:
+    container: kafka_push
+    command: "/kafka/bin/kafka-topics.sh --bootstrap-server localhost:{{ kafka_internal_port }} --list"
+  register: kafka_check
+  until: kafka_check.rc == 0
+  retries: 10
+  delay: 5
+
+# 1. allow child to write business topics
+# note: --alllow-principal need to match certificate
+- name: acl business topics
+  community.docker.docker_container_exec:
+    container: kafka_push
+    command: >
+      /kafka/bin/kafka-acls.sh --bootstrap-server localhost:{{ kafka_internal_port }}
+      --add 
+      --allow-principal User:CN={{ item }}
+      --producer 
+      --topic "{{ item }}.testingtopic" 
+      --resource-pattern-type PREFIXED
+  loop: "{{ groups['child'] }}"
+  register: acl_business
+  changed_when: "'Adding ACLs' in acl_business.stdout"
+
+# 2. allow child to manage own internal mm2 topics
+# mm2 needs to write/read its internal topics
+- name: acl internal topics
+  community.docker.docker_container_exec:
+    container: kafka_push
+    command: >
+      /kafka/bin/kafka-acls.sh --bootstrap-server localhost:{{ kafka_internal_port }}
+      --add 
+      --allow-principal User:CN={{ item }}
+      --operation All 
+      --topic "mm2-offsets-{{ item }}" 
+      --topic "mm2-configs-{{ item }}" 
+      --topic "mm2-status-{{ item }}"
+  loop: "{{ groups['child'] }}"
+  register: acl_internal
+  changed_when: "'Adding ACLs' in acl_internal.stdout"
+
+# 3. allow child to initialize replicas
+- name: acl child describe
+  community.docker.docker_container_exec:
+    container: kafka_push
+    command: >
+      /kafka/bin/kafka-acls.sh --bootstrap-server localhost:{{ kafka_internal_port }}
+      --add 
+      --allow-principal User:CN={{ item }}
+      --operation Describe 
+      --cluster
+  loop: "{{ groups['child'] }}"
+  register: acl_cluster
+  changed_when: "'Adding ACLs' in acl_cluster.stdout"
+
+- name: allow child consumer group
+  community.docker.docker_container_exec:
+    container: kafka_push
+    command: >
+      /kafka/bin/kafka-acls.sh --bootstrap-server localhost:{{ kafka_internal_port }}
+      --add 
+      --allow-principal User:CN={{ item }}
+      --operation All 
+      --group "{{ item }}-mm2"
+  loop: "{{ groups['child'] }}"
+  register: acl_group
+  changed_when: "'Adding ACLs' in acl_group.stdout"

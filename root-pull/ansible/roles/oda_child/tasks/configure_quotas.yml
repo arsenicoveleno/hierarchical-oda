@@ -1,0 +1,20 @@
+---
+# configure bandwith limits for root
+# target: 1 MB/s (1048576 bytes)
+# dynamic principals based on ansible inventory
+
+- name: set root client CN fact
+  set_fact:
+    root_client_cn: "oda_root_{{ inventory_hostname.split('_') | last }}"
+
+- name: quotas
+  community.docker.docker_container_exec:
+    container: kafka_pull
+    command: >
+      /kafka/bin/kafka-configs.sh --bootstrap-server localhost:{{ kafka_internal_port }}
+      --alter --add-config 'consumer_byte_rate=1048576'
+      --entity-type users
+      --entity-name 'CN={{ root_client_cn }}'
+  register: quota_results
+  # idempotency changes
+  changed_when: "quota_results.stdout is defined and 'Completed' in quota_results.stdout"

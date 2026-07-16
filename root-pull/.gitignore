@@ -1,0 +1,12 @@
+oda_certs_output/
+*.vault_pass
+.vault_pass*
+
+# 1. Ignora tutti i file in qualsiasi sotto-cartella dentro secrets
+ansible/files/secrets/**/*
+
+# 2. Impedisci a Git di ignorare le cartelle stesse
+!ansible/files/secrets/**/
+
+# 3. Fai un'eccezione per i file .gitkeep
+!ansible/files/secrets/**/.gitkeep

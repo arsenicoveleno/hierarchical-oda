@@ -1,0 +1,58 @@
+## mirrormaker 2 configuration
+
+# cluster names
+clusters={{ inventory_hostname }},root
+
+# source aka our child, pushing data
+{{ inventory_hostname }}.bootstrap.servers=kafka_push:{{ kafka_internal_port }}
+
+# target aka our root
+root.bootstrap.servers={{ root_kafka_address }}:{{ root_kafka_port }}
+
+## root SSL config
+root.security.protocol=SSL
+root.ssl.truststore.location={{ kafka_secrets_dir }}/kafka.client.truststore.jks
+root.ssl.truststore.password={{ kafka_ssl_password }}
+root.ssl.keystore.location={{ kafka_secrets_dir }}/kafka.client.keystore.jks
+root.ssl.keystore.password={{ kafka_ssl_password }}
+root.ssl.key.password={{ kafka_ssl_password }}
+
+## replication settings
+
+# replication flow
+{{ inventory_hostname }}->root.enabled={{ mm2_enabled }}
+task.max={{ task_max }}
+
+# optional, set to false
+heartbeats.enabled={{ heartbeats_enabled }}
+checkpoints.enabled={{ checkpoints_enabled }}
+emit.checkpoints.enabled={{ emit_checkpoints_enabled }}
+emit.heartbeats.enabled={{ emit_heartbeats_enabled }}
+sync.topic.configs.enabled={{ sync_topic_configs_enabled }}
+sync.topic.acls.enabled={{ sync_topic_acls_enabled }}
+
+# mm2 internal topics
+offset.storage.topic={{ offset_storage_topic }}
+config.storage.topic={{ config_storage_topic }}
+status.storage.topic={{ status_storage_topic }}
+
+offset.storage.replication.factor={{ offset_storage_replication_factor }}
+config.storage.replication.factor={{ config_storage_replication_factor }}
+status.storage.replication.factor={{ status_storage_replication_factor }}
+offset-syncs.topic.replication.factor={{ offset_syncs_topic_replication_factor }}
+
+offset.storage.partitions={{ offset_storage_partitions }}
+config.storage.partitions={{ config_storage_partitions }}
+status.storage.partitions={{ status_storage_partitions }}
+
+# topic replica
+replication.factor={{ replication_factor }}
+
+# topics to mirror
+{{ inventory_hostname }}->root.topics={{ child_root_topics }}
+
+# sync frequency
+refresh.topics.enabled={{ refresh_topics_enabled }}
+refresh.topics.interval.seconds={{ refresh_topics_interval_seconds }}
+refresh.groups.interval.seconds={{ refresh_groups_interval_seconds }}
+refresh.bootstrap.servers=kafka_push:{{ kafka_internal_port }}
