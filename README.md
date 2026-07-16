@@ -9,9 +9,6 @@ This project presents the design, implementation, and security validation of a h
 
 <figure style="text-align: left; margin: 2rem 0;">
   <img src="docs/images/architecture/conceptual.png" alt="Hierarchical ODA Edge-to-Cloud Ecosystem" style="max-width: 100%; width: 550px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);"/>
-  <figcaption style="font-size: 0.9em; color: gray; margin-top: 0.8rem; font-style: italic;">
-    Hierarchical ODA Edge-to-Cloud Ecosystem.
-  </figcaption>
 </figure>
 
 ## Architectural Duality: Child-Push vs. Root-Pull
@@ -24,9 +21,6 @@ In this architecture, the MirrorMaker 2 engine is deployed on each peripheral **
 
 <figure style="text-align: left; margin: 2rem 0;">
   <img src="docs/images/architecture/child_push.png" alt="Hierarchical ODA Edge-to-Cloud Ecosystem" style="max-width: 100%; width: 550px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);"/>
-  <figcaption style="font-size: 0.9em; color: gray; margin-top: 0.8rem; font-style: italic;">
-    Child-Push Architecture.
-  </figcaption>
 </figure>
 
 ### 2. Root-Pull Topology (Centralized Governance)
@@ -36,17 +30,11 @@ In this architecture, the replication engine is centralized on the **Root node**
 
 <figure style="text-align: left; margin: 2rem 0;">
   <img src="docs/images/architecture/root_pull.png" alt="Hierarchical ODA Edge-to-Cloud Ecosystem" style="max-width: 100%; width: 550px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);"/>
-  <figcaption style="font-size: 0.9em; color: gray; margin-top: 0.8rem; font-style: italic;">
-    Root-Pull Architecture.
-  </figcaption>
 </figure>
 
 ## Macro-Architectural Threat Modeling
 <figure style="text-align: left; margin: 2rem 0;">
   <img src="docs/images/threat/dfd.png" alt="Hierarchical ODA Data Flow Diagram" style="max-width: 100%; width: 550px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);"/>
-  <figcaption style="font-size: 0.9em; color: gray; margin-top: 0.8rem; font-style: italic;">
-    Hierarchical ODA Data Flow Diagram.
-  </figcaption>
 </figure>
 
 The system model is built upon three primary logical entities: the centralized **Ansible Controller** for IaC orchestration, the **Root Node** for data aggregation, and the distributed **Child Nodes** for edge ingestion. Two distinct logical flows traverse the infrastructure: the **Data Replication flow**, which synchronizes data from Children to Root, and the **Deploy flow**, which carries configurations from the Controller to the target nodes.
@@ -77,9 +65,6 @@ The deployment follows a **Lifecycle Separation** pattern, dividing the process 
 
 <figure style="text-align: left; margin: 2rem 0;">
   <img src="docs/images/poc/states.png" alt="Hierarchical ODA Edge-to-Cloud Ecosystem" style="max-width: 100%; width: 550px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);"/>
-  <figcaption style="font-size: 0.9em; color: gray; margin-top: 0.8rem; font-style: italic;">
-    State Machine Diagram illustrating the infrastructure lifecycle and transitions.
-  </figcaption>
 </figure>
 
 1.  **Provisioning Phase (`deploy.yml`)**: Handles system scaffolding, certificate distribution, and template rendering.
@@ -125,9 +110,6 @@ The efficacy of the applied defenses was verified through:
 ## Architectural Decision Tree
 <figure style="text-align: left; margin: 2rem 0;">
   <img src="docs/images/dt/dt.png" alt="Hierarchical ODA Topology Decision Tree" style="max-width: 100%; width: 550px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);"/>
-  <figcaption style="font-size: 0.9em; color: gray; margin-top: 0.8rem; font-style: italic;">
-    Decision tree framework for selecting the optimal Hierarchical ODA topology.
-  </figcaption>
 </figure>
 
 The selection between the two topologies is dictated by three cascading constraints, formalized in the decision tree above. The first is **network deployability**: if Edge nodes are not directly addressable from the Root (e.g., behind NAT), the Child-Push model is logistically mandatory. The second is **trust assumptions**: under a strict Zero Trust posture, Child-Push is preferred to logically air-gap the Edge from central Cloud breaches. The third is **governance prioritization**: when the Root is trusted and centralized control is desired, Root-Pull offloads computational overhead from resource-constrained Edge nodes and aligns with Kafka best practices.
